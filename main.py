@@ -39,38 +39,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         hashed_password.encode("utf-8")
     )
     
-    
-# ========= FROM ROBOTS ===============
-collection = db["robots"]       # Collection name (not robots.json, just robots)
-
-# Optional: enable CORS if you’ll connect from React/React Native
-app.add_middleware(
-  CORSMiddleware,
-  allow_origins=["*"],  # or specify your frontend domain
-  allow_credentials=True,
-  allow_methods=["*"],
-  allow_headers=["*"],
-)
-# --- Minimal Pydantic model ---
-class Robot(BaseModel):
-  name: str
-  price: float
-  description: str
-  imageUrl: str
-
-# --- Get all robots ---@app.get("/robots")def
-@app.get("/robots")
-def get_robots():
-  robots = list(collection.find())  # Retrieve all documents
-  for r in robots:
-    r["_id"] = str(r["_id"])    # Convert ObjectId to string
-  return robots
-# --- Add robot ---
-@app.post("/robots")
-def add_robot(robot: Robot):
-  collection.insert_one(robot.model_dump())
-  return {"message": "Robot added successfully"}
-
 # ======== SIMPLE USER "DB" (in-memory for demo) ========
 # fake_users_db = {} 
 
@@ -185,3 +153,36 @@ def read_protected_data(current_user: str = Depends(get_current_user)):
 @app.get("/hello")
 def hello():
     return {"message": "Hello from FastAPI"}
+
+
+# ========= FROM ROBOTS ===============
+collection = db["robots"]       # Collection name (not robots.json, just robots)
+
+# Optional: enable CORS if you’ll connect from React/React Native
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=["*"],  # or specify your frontend domain
+  allow_credentials=True,
+  allow_methods=["*"],
+  allow_headers=["*"],
+)
+# --- Minimal Pydantic model ---
+class Robot(BaseModel):
+  name: str
+  price: float
+  description: str
+  imageUrl: str
+
+# --- Get all robots ---@app.get("/robots")def
+@app.get("/robots")
+def get_robots():
+  robots = list(collection.find())  # Retrieve all documents
+  for r in robots:
+    r["_id"] = str(r["_id"])    # Convert ObjectId to string
+  return robots
+
+# --- Add robot ---
+@app.post("/robots")
+def add_robot(robot: Robot, current_user: str = Depends(get_current_user)):
+  collection.insert_one(robot.model_dump())
+  return {"message": "Robot added successfully"}
